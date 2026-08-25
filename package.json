@@ -1,0 +1,45 @@
+{
+	"name": "app-settings",
+	"version": "0.1.0",
+	"private": true,
+	"packageManager": "pnpm@11.23.0",
+	"description": "Manage accounts, appearance, and your companion in JustFiles.",
+	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/justfiles/app-settings.git"
+	},
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"format": "biome format --write .",
+		"lint": "biome ci .",
+		"lint:fix": "biome check --write ."
+	},
+	"dependencies": {
+		"@justfiles/app": "^0.9.0",
+		"valibot": "^1.4.2"
+	},
+	"peerDependencies": {
+		"react": "^19",
+		"react-dom": "^19"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.10",
+		"@types/node": "^26.3.0",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.5",
+		"@vitejs/plugin-react": "^6.1.0",
+		"esbuild": "^0.27.7",
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8",
+		"typescript": "5.9.3",
+		"vite": "^8.2.2",
+		"vitest": "^4.1.11"
+	}
+}
