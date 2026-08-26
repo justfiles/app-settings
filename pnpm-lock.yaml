@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@justfiles/app':
         specifier: ^0.9.0
-        version: 0.9.0(esbuild@0.27.7)(typescript@5.9.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
+        version: 0.9.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
       valibot:
         specifier: ^1.4.2
-        version: 1.4.2(typescript@5.9.3)
+        version: 1.4.2(typescript@6.0.3)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.10
@@ -40,8 +40,8 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
       typescript:
-        specifier: 5.9.3
-        version: 5.9.3
+        specifier: 6.0.3
+        version: 6.0.3
       vite:
         specifier: ^8.2.2
         version: 8.2.2(@types/node@26.3.0)(esbuild@0.27.7)
@@ -668,8 +668,8 @@ packages:
     resolution: {integrity: sha512-YGYEVz3Fm5iy/AybuA0oyNFq7H4CgQNfRp/qfe8nurE1kuCeNm3/vfm9X4Mtl+qLyaKJUh5xrFZwogr41SMjYA==}
     engines: {node: '>=20'}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -890,10 +890,10 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@justfiles/app@0.9.0(esbuild@0.27.7)(typescript@5.9.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
+  '@justfiles/app@0.9.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
     dependencies:
       '@justfiles/design': 0.1.1
-      '@justfiles/fs': 0.7.0(typescript@5.9.3)
+      '@justfiles/fs': 0.7.0(typescript@6.0.3)
       '@standard-schema/spec': 1.1.0
       capnweb: 0.8.0
       es-module-lexer: 2.3.2
@@ -901,15 +901,15 @@ snapshots:
       type-fest: 5.8.0
     optionalDependencies:
       esbuild: 0.27.7
-      typescript: 5.9.3
+      typescript: 6.0.3
       vite: 8.2.2(@types/node@26.3.0)(esbuild@0.27.7)
 
   '@justfiles/design@0.1.1': {}
 
-  '@justfiles/fs@0.7.0(typescript@5.9.3)':
+  '@justfiles/fs@0.7.0(typescript@6.0.3)':
     dependencies:
       idb: 8.0.3
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   '@oxc-project/types@0.146.0': {}
 
@@ -1213,13 +1213,13 @@ snapshots:
     dependencies:
       tagged-tag: 1.0.0
 
-  typescript@5.9.3: {}
+  typescript@6.0.3: {}
 
   undici-types@8.3.0: {}
 
-  valibot@1.4.2(typescript@5.9.3):
+  valibot@1.4.2(typescript@6.0.3):
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
   vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7):
     dependencies:
