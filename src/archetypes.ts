@@ -1,7 +1,5 @@
-// The three natures the summoning offers. A nature is a SEED for the first draft of a soul
-// and nothing after it — what it leaves behind is the avatar picked with it, which is why
-// there is no art here any more: the pictures come from `agent.listAvatars` (one built-in
-// per nature, `builtin/<id>`), so this app holds copy and no bytes.
+// The three natures the summoning offers. A nature seeds the first soul draft and nothing
+// after it. It does not choose or record an avatar.
 
 export interface Archetype {
 	id: string
@@ -32,7 +30,3 @@ export const ARCHETYPES: Archetype[] = [
 		disposition: [2, 5, 5]
 	}
 ]
-
-export function archetypeOf(id: string | null): Archetype | undefined {
-	return ARCHETYPES.find((a) => a.id === id)
-}

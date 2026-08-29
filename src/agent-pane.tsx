@@ -1,19 +1,10 @@
 import type { Client } from '@justfiles/app'
 import { injectStyle } from '@justfiles/app/browser'
-import type { AvatarInfo, GeneratedSoul, UserFacts } from '@justfiles/app/capabilities/settings'
-import { fileStem } from '@justfiles/app/image-type'
-import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from 'react'
-import {
-	avatarStates,
-	DEFAULT_AVATAR,
-	isBound,
-	nameInSoul,
-	type SettingsApp,
-	type SettingsState,
-	wornAvatar
-} from './app.ts'
-import { ARCHETYPES, archetypeOf } from './archetypes.ts'
-import { imageUrl, squareImage } from './squareImage.ts'
+import type { GeneratedSoul, UserFacts } from '@justfiles/app/capabilities/settings'
+import { GameboyAvatar } from '@justfiles/avatar/react'
+import { useEffect, useRef, useState } from 'react'
+import { isBound, nameInSoul, type SettingsApp, type SettingsState } from './app.ts'
+import { ARCHETYPES } from './archetypes.ts'
 
 // The Agent pane: who your companion is, and nothing else (your own name and birth date
 // live with your account — they are facts about you). Two states, one pane:
@@ -22,19 +13,14 @@ import { imageUrl, squareImage } from './squareImage.ts'
 //   someone else's defaults; it runs THE SUMMONING: a name, a nature, then the soul
 //   drafted in front of you, kept only when you say so.
 //
-//   BOUND — the character sheet: the avatar (wear another, or drop a photo on it), the name,
-//   the gender, and the soul as a document you can edit or have rewritten.
-//
-// AN AVATAR IS A DIRECTORY, so this pane holds no art: every picture on screen is a data URL
-// from `listAvatars`, and every write is one named file through `putAvatarFile`. That is what
-// lets it offer a set to wear and a face per feeling without a method per state.
+//   BOUND — the character sheet: the one canvas avatar, the name, the gender, and the soul
+//   as a document you can edit or have rewritten.
 //
 // A NATURE IS A SEED, AND IT IS NOT KEPT. It is offered once, in the summoning, where it
 // shapes the first draft — and then it is over. Nothing records "this one is a teacher",
 // because after the draft exists the prose IS the character, and a word in the frontmatter
-// claiming otherwise can only disagree with the soul on screen. What the ritual leaves
-// behind is the avatar they wear, which is the part of the choice you can still see. The
-// route back is "Summon again", which replaces the soul.
+// claiming otherwise can only disagree with the soul on screen. The route back is "Summon
+// again", which replaces the soul.
 //
 // The one drift left is a RENAME: the prose opens "You are Fern…". The pane says so and
 // offers one Rewrite. It never rewrites prose because a field changed.
@@ -46,32 +32,13 @@ import { imageUrl, squareImage } from './squareImage.ts'
 injectStyle(
 	`
 .settings-card.agent-hero { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
-.agent-face { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.agent-drop { position: relative; width: 96px; height: 96px; padding: 0; overflow: hidden; display: grid; place-items: center; border: 1px solid var(--rule); border-radius: 12px; background: color-mix(in srgb, var(--window-bg) 92%, black); }
-.agent-drop img { width: 100%; height: 100%; object-fit: cover; }
-.agent-drop-veil { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 2px; font-size: 10.5px; color: #fff; background: rgba(0,0,0,0.45); opacity: 0; transition: opacity 0.15s; }
-.agent-drop:hover .agent-drop-veil, .agent-drop[data-over="true"] .agent-drop-veil { opacity: 1; }
-.agent-drop[data-over="true"] { border: 2px dashed var(--focus); }
+.agent-avatar { display: block; width: 112px; height: 112px; image-rendering: pixelated; }
 .agent-name { font: inherit; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; width: 100%; padding: 3px 6px; margin-left: -6px; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 7px; }
 .agent-name:hover { border-color: var(--rule); background: var(--window-bg); }
 .agent-name:focus { border-color: var(--focus); background: var(--window-bg); outline: none; }
 .agent-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; opacity: 0.65; }
 .agent-hint { font-size: 11px; opacity: 0.5; }
-.agent-tiny { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-size: 11px; opacity: 0.6; text-decoration: underline; }
 .agent-row > button { white-space: nowrap; }
-
-/* the wardrobe: every avatar this host can offer, and the states the worn one covers */
-.agent-wardrobe { display: flex; flex-wrap: wrap; gap: 10px; }
-.agent-skin { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 84px; padding: 8px 6px; border: 1px solid var(--rule); border-radius: 10px; background: var(--window-bg); color: inherit; }
-.agent-skin:hover { border-color: var(--focus); }
-.agent-skin[data-on="true"] { border-color: var(--focus); box-shadow: inset 0 0 0 1px var(--focus); }
-.agent-skin img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; }
-.agent-skin span { font-size: 11px; }
-.agent-skin small { font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.5; }
-.agent-states { display: grid; gap: 4px; margin-top: 4px; }
-.agent-state { display: flex; align-items: center; gap: 8px; padding: 5px 8px; font-size: 12px; border: 1px solid var(--rule); border-radius: 7px; background: var(--window-bg); }
-.agent-state b { font-weight: 550; text-transform: capitalize; }
-.agent-state span { flex: 1; font-size: 11px; opacity: 0.55; }
 
 .agent-seg { display: inline-flex; overflow: hidden; border: 1px solid var(--rule); border-radius: 7px; background: var(--window-bg); }
 .agent-seg button { padding: 4px 14px; font-size: 12px; border: 0; border-right: 1px solid var(--rule); background: transparent; color: inherit; }
@@ -97,11 +64,6 @@ injectStyle(
 /* the summoning */
 .agent-altar { display: grid; place-items: center; padding: 20px 0 30px; }
 .agent-altar-inner { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 560px; text-align: center; }
-.agent-altar-portrait { position: relative; width: 132px; height: 132px; border-radius: 18px; }
-.agent-altar-portrait img { width: 100%; height: 100%; object-fit: cover; }
-.agent-altar-portrait[data-dim="true"] img { filter: grayscale(1); opacity: 0.4; }
-.agent-ring { position: absolute; inset: -10px; border: 2px dashed color-mix(in srgb, var(--focus) 70%, transparent); border-radius: 50%; animation: agent-spin 3.2s linear infinite; pointer-events: none; }
-@keyframes agent-spin { to { transform: rotate(360deg); } }
 .agent-step { font-size: 10px; font-weight: 650; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.45; }
 .agent-ask { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
 .agent-lede { margin: 0; max-width: 400px; font-size: 12px; line-height: 1.5; opacity: 0.55; }
@@ -111,7 +73,6 @@ injectStyle(
 .agent-natures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .agent-nature { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px 15px; text-align: center; border: 1px solid var(--rule); border-radius: 12px; background: var(--window-bg); color: inherit; }
 .agent-nature:hover { border-color: var(--focus); background: color-mix(in srgb, var(--focus) 6%, var(--window-bg)); }
-.agent-nature img { width: 72px; height: 72px; }
 .agent-nature b { font-size: 13.5px; }
 .agent-nature span { font-size: 11.5px; line-height: 1.35; opacity: 0.6; }
 .agent-dispo { display: grid; gap: 3px; width: 100%; margin-top: 2px; }
@@ -214,116 +175,6 @@ export function useDrafting(client: Client<SettingsApp>, facts: UserFacts | null
 	return { writing, error, ask, dismiss: () => setError(null) }
 }
 
-const CAMERA = (
-	<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-		<title>Choose a photo</title>
-		<path d="M9 3h6l1 2h3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l1-2Zm3 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" />
-	</svg>
-)
-
-// Every avatar this host can offer, each with the state it rests in as a data URL. Kept out
-// of reducer state (that is JSON, and it replicates): the pictures ride back from a procedure
-// and are re-read whenever `revision` moves — a write here, or an avatar installed on another
-// device. Shared with the sidebar row, which wears the same face.
-export function useAvatars(client: Client<SettingsApp>, revision: number): AvatarInfo[] {
-	const [avatars, setAvatars] = useState<AvatarInfo[]>([])
-	useEffect(() => {
-		// `revision` is why this runs again: nothing else in state moves when only the files do.
-		void revision
-		let live = true
-		void client
-			.listAvatars({})
-			.then((list) => {
-				if (live) setAvatars(list)
-			})
-			.catch(() => setAvatars([]))
-		return () => {
-			live = false
-		}
-	}, [client, revision])
-	return avatars
-}
-
-// The id an uploaded photo lands under, and the state that IS the avatar. `mine` is just the
-// id the uploader picks — nothing stops `mine-2` later, so there is no machinery for it now.
-const MINE = 'mine'
-const RESTING = 'resting'
-
-// Click it or drop an image on it: the portrait IS the fast path to your own avatar — one
-// photo becomes `mine/resting` and the expression faces are derived from it. The wardrobe
-// below is the slow path: wear a whole set, or author a face per feeling.
-function AvatarDrop({
-	face,
-	size = 'sheet',
-	dim,
-	busy,
-	onPick,
-	onError
-}: {
-	// Undefined until the first `listAvatars` lands — the frame is drawn, the picture arrives.
-	face?: string
-	size?: 'sheet' | 'altar'
-	dim?: boolean
-	busy?: boolean
-	// Just the bytes: the state a photo lands in is named for the state, not for the encoder
-	// this browser happened to have.
-	onPick: (bytes: Uint8Array<ArrayBuffer>) => void
-	onError?: (message: string) => void
-}) {
-	const input = useRef<HTMLInputElement>(null)
-	const [over, setOver] = useState(false)
-
-	const take = async (file?: File | null) => {
-		if (!file) return
-		if (!file.type.startsWith('image/')) return onError?.('That is not an image.')
-		const source = URL.createObjectURL(file)
-		try {
-			onPick(await squareImage(source))
-		} catch (error) {
-			onError?.(error instanceof Error ? error.message : String(error))
-		} finally {
-			URL.revokeObjectURL(source)
-		}
-	}
-	const drop = (event: DragEvent<HTMLButtonElement>) => {
-		event.preventDefault()
-		setOver(false)
-		void take(event.dataTransfer?.files?.[0])
-	}
-	return (
-		<>
-			<button
-				type="button"
-				className={size === 'altar' ? 'agent-drop agent-altar-portrait' : 'agent-drop'}
-				data-over={over || undefined}
-				data-dim={dim || undefined}
-				disabled={busy}
-				title="Click, or drop an image here"
-				onClick={() => input.current?.click()}
-				onDragOver={(event) => {
-					event.preventDefault()
-					setOver(true)
-				}}
-				onDragLeave={() => setOver(false)}
-				onDrop={drop}
-			>
-				{face ? <img src={face} alt="" /> : null}
-				<span className="agent-drop-veil">
-					{CAMERA}
-					<span>{over ? 'Drop to use' : 'Use a photo'}</span>
-				</span>
-			</button>
-			<input
-				ref={input}
-				type="file"
-				accept="image/*"
-				hidden
-				onChange={(event: ChangeEvent<HTMLInputElement>) => void take(event.target.files?.[0])}
-			/>
-		</>
-	)
-}
-
 function Gendered({ value, onPick }: { value: Gender; onPick: (next: Gender) => void }) {
 	return (
 		<div className="agent-seg">
@@ -338,97 +189,6 @@ function Gendered({ value, onPick }: { value: Gender; onPick: (next: Gender) => 
 				</button>
 			))}
 		</div>
-	)
-}
-
-// A face per feeling, for an avatar that is YOURS. Every state the built-in art covers gets a
-// row: authored means someone drew it and it always wins; otherwise the image model derives
-// one the first time the agent feels that way, and this is where you overrule it.
-//
-// No thumbnails: `listAvatars` carries one picture per avatar, not one per state, and putting
-// six of them through every list call to decorate a row nobody edits twice is not worth it.
-function States({
-	client,
-	avatar,
-	states
-}: {
-	client: Client<SettingsApp>
-	avatar: AvatarInfo
-	states: string[]
-}) {
-	const input = useRef<HTMLInputElement>(null)
-	const [target, setTarget] = useState<string | null>(null)
-	const [error, setError] = useState<string | null>(null)
-
-	const put = async (name: string, bytes: Uint8Array<ArrayBuffer> | null) => {
-		setError(null)
-		try {
-			await client.putAvatarFile({ avatar: avatar.ref, name, bytes })
-		} catch (problem) {
-			setError(problem instanceof Error ? problem.message : String(problem))
-		}
-	}
-
-	const take = async (file?: File | null) => {
-		const state = target
-		setTarget(null)
-		if (!file || !state) return
-		if (!file.type.startsWith('image/')) return setError('That is not an image.')
-		const source = URL.createObjectURL(file)
-		try {
-			// Normalised to the same 256² square as everything else here, so a 4 MB photo is not
-			// replicated to every device six times over. The write claims the STATE, so this
-			// replaces whatever format that state was stored in before.
-			await put(state, await squareImage(source))
-		} catch (problem) {
-			setError(problem instanceof Error ? problem.message : String(problem))
-		} finally {
-			URL.revokeObjectURL(source)
-		}
-	}
-
-	return (
-		<>
-			<div className="agent-states">
-				{states.map((state) => {
-					// The file that IS this state, to show: `resting` for anything written here, or
-					// a pack's `resting.webp` — stem-matched, because an extension is only ever
-					// something a pack brought with it.
-					const file = avatar.files.find((name) => fileStem(name) === state)
-					return (
-						<div className="agent-state" key={state}>
-							<b>{state}</b>
-							<span>
-								{file ?? (state === 'resting' ? 'required' : 'derived when they feel it')}
-							</span>
-							<button
-								type="button"
-								className="settings-small-button"
-								onClick={() => {
-									setTarget(state)
-									input.current?.click()
-								}}
-							>
-								{file ? 'Replace' : 'Draw it yourself'}
-							</button>
-							{file && state !== 'resting' ? (
-								<button type="button" className="agent-tiny" onClick={() => void put(state, null)}>
-									Remove
-								</button>
-							) : null}
-						</div>
-					)
-				})}
-			</div>
-			{error ? <span className="settings-card-error">{error}</span> : null}
-			<input
-				ref={input}
-				type="file"
-				accept="image/*"
-				hidden
-				onChange={(event: ChangeEvent<HTMLInputElement>) => void take(event.target.files?.[0])}
-			/>
-		</>
 	)
 }
 
@@ -449,26 +209,15 @@ function Pips({ values }: { values: [number, number, number] }) {
 	)
 }
 
-// The frontmatter the write will actually produce, shown dimmed above the prose so the
-// document on screen is the document on disk.
-function frontmatter({
-	name,
-	gender,
-	avatar
-}: {
-	name: string
-	gender: Gender
-	avatar: string | null
-}): string {
-	const lines = [
+// The identity fields this pane owns, shown dimmed above the prose.
+function frontmatter({ name, gender }: { name: string; gender: Gender }): string {
+	return [
 		'---',
 		'schema: frieren/agent-soul/v1',
 		`agent_name: ${name}`,
-		`agent_gender: ${gender}`
-	]
-	if (avatar) lines.push(`avatar: ${avatar}`)
-	lines.push('---')
-	return lines.join('\n')
+		`agent_gender: ${gender}`,
+		'---'
+	].join('\n')
 }
 
 export function AgentPane({
@@ -484,9 +233,6 @@ export function AgentPane({
 	// write only happens at Bind — so there is no "unbind" method and no confirmation for a
 	// step that has not touched the volume.
 	const [resummon, setResummon] = useState(false)
-	// Read here and passed down, so the ritual and the sheet agree about what is available to
-	// wear — and a photo dropped in one is on screen in the other.
-	const avatars = useAvatars(client, state.avatarRevision)
 
 	// `soul` is null only before the first read lands.
 	if (!state.soul) return <p className="settings-muted">Loading…</p>
@@ -495,7 +241,6 @@ export function AgentPane({
 			<Summoning
 				client={client}
 				drafting={drafting}
-				avatars={avatars}
 				// The soul being replaced — the ritual opens on their name and says whose soul
 				// this ends. Null while unbound: there is no one to replace yet.
 				from={isBound(state.soul) ? state.soul : null}
@@ -509,7 +254,6 @@ export function AgentPane({
 	return (
 		<CharacterSheet
 			soul={state.soul}
-			avatars={avatars}
 			client={client}
 			drafting={drafting}
 			onResummon={() => setResummon(true)}
@@ -519,7 +263,6 @@ export function AgentPane({
 
 function CharacterSheet({
 	soul,
-	avatars,
 	client,
 	drafting,
 	onResummon
@@ -527,20 +270,15 @@ function CharacterSheet({
 	// Proved non-null by `AgentPane`, and passed rather than re-derived so every hook
 	// below runs unconditionally.
 	soul: NonNullable<SettingsState['soul']>
-	avatars: AvatarInfo[]
 	client: Client<SettingsApp>
 	drafting: Drafting
 	onResummon: () => void
 }) {
-	// What they are wearing, as the host described it — an unknown ref (a pack this device does
-	// not have) reads as the default, which is what the shell shows too.
-	const worn = wornAvatar(soul, avatars)
 	const [editing, setEditing] = useState(false)
 	const [body, setBody] = useState(soul.body)
 	const [name, setName] = useState(soul.name)
 	const [busy, setBusy] = useState(false)
 	const [saved, setSaved] = useState(false)
-	const [faceError, setFaceError] = useState<string | null>(null)
 	const gender: Gender = soul.gender ?? 'female'
 	const written = nameInSoul(soul)
 	const renamed = written !== null && written !== soul.name
@@ -549,7 +287,7 @@ function CharacterSheet({
 	// The volume is the truth: a sync (or a rewrite) replaces what is on screen unless the
 	// user is mid-edit, in which case their draft stands until they are done. BOTH fields
 	// need that guard — `soul` is a fresh object on every state push, whatever changed, so
-	// an avatar write or a usage load lands here too and would type over them.
+	// a usage load lands here too and would type over them.
 	const typing = useRef(false)
 	useEffect(() => {
 		if (!editing) setBody(soul.body)
@@ -559,35 +297,14 @@ function CharacterSheet({
 	// Only what changed is sent; the host merges. Passing the whole sheet would write the
 	// soul editor's unfinished text — the one the footer still says "Press Done to write" —
 	// every time the name or the gender was saved.
-	const save = async (
-		patch: { name?: string; gender?: Gender; body?: string; avatar?: string },
-		flash = true
-	) => {
+	const save = async (patch: { name?: string; gender?: Gender; body?: string }) => {
 		setBusy(true)
 		try {
 			await client.saveSoul(patch)
-			if (flash) {
-				setSaved(true)
-				setTimeout(() => setSaved(false), 1200)
-			}
+			setSaved(true)
+			setTimeout(() => setSaved(false), 1200)
 		} finally {
 			setBusy(false)
-		}
-	}
-
-	// A photo becomes an avatar OF THEIR OWN: it lands as `mine/resting` and is then worn.
-	// The file first, then the soul — the soul is the pointer, so a failed upload leaves them
-	// wearing exactly what they wore, and a failed wear leaves a file nobody is looking at.
-	const wearPhoto = async (bytes: Uint8Array<ArrayBuffer>) => {
-		setFaceError(null)
-		try {
-			// Named for the STATE, not for what this browser encoded — WebP here, PNG on Safari.
-			// The host publishes a state at one path per device for that reason, and reads what
-			// the bytes are from the bytes.
-			await client.putAvatarFile({ avatar: MINE, name: RESTING, bytes })
-			if (soul.avatar !== MINE) await save({ avatar: MINE }, false)
-		} catch (error) {
-			setFaceError(error instanceof Error ? error.message : String(error))
 		}
 	}
 
@@ -617,16 +334,7 @@ function CharacterSheet({
 			</header>
 
 			<section className="settings-card agent-hero">
-				<div className="agent-face">
-					<AvatarDrop
-						face={worn?.preview}
-						busy={busy}
-						onError={setFaceError}
-						onPick={(photo) => void wearPhoto(photo)}
-					/>
-					<span className="agent-hint">click or drop</span>
-					{faceError ? <span className="settings-card-error">{faceError}</span> : null}
-				</div>
+				<GameboyAvatar className="agent-avatar" />
 				<div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
 					<input
 						className="agent-name"
@@ -651,46 +359,8 @@ function CharacterSheet({
 							Saved
 						</span>
 					</div>
-					<span className="agent-hint">
-						{worn?.builtin
-							? `They wear the ${worn.label.toLowerCase()} art — a choice, not bytes. Drop a photo on it to use your own.`
-							: `Their face is ${worn?.label ?? 'yours'}, stored on your volume and synced to every device.`}
-					</span>
+					<span className="agent-hint">Their animated monitor face changes with them.</span>
 				</div>
-			</section>
-
-			<section className="settings-card">
-				<div className="agent-row">
-					<h2 className="settings-card-title">Face</h2>
-					<span className="agent-row-grow" />
-					<span className="settings-card-copy">Wear a set, or give them one of your own.</span>
-				</div>
-				<div className="agent-wardrobe">
-					{avatars.map((avatar) => (
-						<button
-							key={avatar.ref}
-							type="button"
-							className="agent-skin"
-							data-on={avatar.ref === worn?.ref}
-							disabled={busy}
-							// Wearing one is a plain soul field — no method of its own, and nothing is
-							// deleted: the art you are stepping out of is still yours.
-							onClick={() => void save({ avatar: avatar.ref })}
-						>
-							<img src={avatar.preview} alt="" />
-							<span>{avatar.label}</span>
-							<small>{avatar.builtin ? 'built in' : 'yours'}</small>
-						</button>
-					))}
-				</div>
-				{worn && !worn.builtin ? (
-					<States client={client} avatar={worn} states={avatarStates(avatars)} />
-				) : (
-					<span className="agent-hint">
-						Built-in art costs you no storage and updates with the app. Drop a photo on the portrait
-						to make an avatar of your own — then you can draw a face per feeling.
-					</span>
-				)}
 			</section>
 
 			<section className="settings-card">
@@ -752,9 +422,7 @@ function CharacterSheet({
 						</button>
 					</div>
 					<div className="agent-doc-body">
-						<span className="agent-doc-fm">
-							{frontmatter({ name, gender, avatar: soul.avatar })}
-						</span>
+						<span className="agent-doc-fm">{frontmatter({ name, gender })}</span>
 						{editing ? (
 							<textarea
 								value={body}
@@ -799,24 +467,19 @@ function CharacterSheet({
 
 // ── the summoning ─────────────────────────────────────────────────────────
 // One question at a time, in the same pane, in a real window: a name, then a nature, then
-// the soul drafted in front of you. Nothing is written until "Bind" — including the photo,
-// which is why the draft carries bytes.
+// the soul drafted in front of you. Nothing is written until "Bind".
 
 const STEPS = ['name', 'nature', 'review'] as const
 
 function Summoning({
 	client,
 	drafting,
-	avatars,
 	from,
 	onBound,
 	onCancel
 }: {
 	client: Client<SettingsApp>
 	drafting: Drafting
-	// Every avatar this host can offer — the nature cards wear the built-in art, so the
-	// pictures come from the host and this app ships none.
-	avatars: AvatarInfo[]
 	// The soul being replaced, when this is "summon again": the ritual starts from the name
 	// they already have rather than from nothing.
 	from: SettingsState['soul']
@@ -828,16 +491,10 @@ function Summoning({
 	const [name, setName] = useState(from?.name ?? '')
 	const [gender, setGender] = useState<Gender>(from?.gender ?? 'female')
 	const [archetype, setArchetype] = useState<string | null>(null)
-	const [photo, setPhoto] = useState<{ bytes: Uint8Array<ArrayBuffer>; url: string } | null>(null)
 	const [body, setBody] = useState('')
 	const [firstWords, setFirstWords] = useState<string | null>(null)
 	const [busy, setBusy] = useState(false)
-	const nature = archetypeOf(archetype)
 	const writing = drafting.writing
-	// The art a nature wears: `builtin/<id>` — the one ref this app spells besides the default,
-	// because a nature card names the picture it is offering.
-	const previewOf = (ref: string) => avatars.find((avatar) => avatar.ref === ref)?.preview
-	const chosen = archetype ? `builtin/${archetype}` : DEFAULT_AVATAR
 
 	// The draft lands in the ritual's own editor — showing it IS the review step. It is the
 	// same textarea whether the model wrote it or the user did, and it is held by this
@@ -868,18 +525,10 @@ function Summoning({
 	const bind = async () => {
 		setBusy(true)
 		try {
-			// THE PHOTO FIRST, then the soul. Two writes cannot be one transaction here, and the
-			// soul is the POINTER — so a failed upload leaves the agent exactly as they were, and
-			// a failed bind leaves a file under `mine/` that nobody is wearing and nobody sees.
-			// Nothing is deleted either way: the art they had is still theirs.
-			if (photo) await client.putAvatarFile({ avatar: MINE, name: RESTING, bytes: photo.bytes })
 			await client.saveSoul({
 				name: name.trim(),
 				gender,
-				body: body.trim(),
-				// The nature picked here is not recorded AS a nature — it is recorded as the avatar
-				// they wear, which is the only part of it that outlives the ritual.
-				avatar: photo ? MINE : chosen
+				body: body.trim()
 			})
 		} finally {
 			setBusy(false)
@@ -898,29 +547,14 @@ function Summoning({
 		</div>
 	)
 
-	const art = photo?.url ?? previewOf(chosen)
-
 	return (
 		<div className="settings-pane">
 			<div className="agent-altar">
 				<div className="agent-altar-inner">
-					{step === 'review' ? (
-						<AvatarDrop
-							face={art}
-							size="altar"
-							busy={busy}
-							onPick={(bytes) => setPhoto({ bytes, url: imageUrl(bytes) })}
-						/>
-					) : (
-						<span className="agent-drop agent-altar-portrait" data-dim="true">
-							{art ? <img src={art} alt="" /> : null}
-							{writing ? <span className="agent-ring" /> : null}
-						</span>
-					)}
-
 					{step === 'name' ? (
 						<>
 							<span className="agent-step">The summoning</span>
+							<GameboyAvatar className="agent-avatar" />
 							<h1 className="agent-ask">
 								{from ? `Summoning over ${from.name}.` : 'Someone waits to be summoned.'}
 							</h1>
@@ -976,10 +610,6 @@ function Summoning({
 										disabled={writing}
 										onClick={() => pickNature(option.id)}
 									>
-										{/* The art a nature wears, once the host has said what it is. */}
-										{previewOf(`builtin/${option.id}`) ? (
-											<img src={previewOf(`builtin/${option.id}`)} alt="" />
-										) : null}
 										<b>{option.title}</b>
 										<span>{option.tagline}</span>
 										<Pips values={option.disposition} />
@@ -995,18 +625,15 @@ function Summoning({
 							<span className="agent-step">Before you bind</span>
 							<h1 className="agent-ask">This is {name.trim()}.</h1>
 							<p className="agent-lede">
-								Read it — change a word if you like, it is a file and not a contract.{' '}
-								{photo
-									? 'That photo becomes their face.'
-									: `They wear the ${nature?.title.toLowerCase() ?? 'default'} art; drop a photo on the portrait to use your own.`}
+								Read it — change a word if you like, it is a file and not a contract. Their monitor
+								avatar is already set.
 							</p>
 							<div className="agent-doc" style={{ width: '100%', textAlign: 'left' }}>
 								<div className="agent-doc-body">
 									<span className="agent-doc-fm">
 										{frontmatter({
 											name: name.trim(),
-											gender,
-											avatar: photo ? MINE : chosen
+											gender
 										})}
 									</span>
 									<textarea

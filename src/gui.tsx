@@ -6,17 +6,17 @@ import type {
 	ProviderInfo,
 	UsageResource
 } from '@justfiles/app/capabilities/settings'
+import { GameboyAvatar } from '@justfiles/avatar/react'
 import { type ReactNode, StrictMode, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { AgentPane, useAvatars, useDrafting } from './agent-pane.tsx'
+import { AgentPane, useDrafting } from './agent-pane.tsx'
 import {
 	type Category,
 	hasBothOrigins,
 	initialState,
 	originKind,
 	type SettingsApp,
-	type SettingsState,
-	wornAvatar
+	type SettingsState
 } from './app.ts'
 import { AppearancePane } from './appearance-pane.tsx'
 import { SystemPane } from './system-pane.tsx'
@@ -50,8 +50,7 @@ button.settings-account[data-active="true"],
 .settings-nav-item:hover { background: var(--surface); }
 .settings-nav-item[data-active="true"] { background: var(--focus); color: var(--on-focus); }
 .settings-nav-glyph { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 5px; font-size: 12px; }
-.settings-nav-face { overflow: hidden; background: var(--rule); }
-.settings-nav-face img { width: 100%; height: 100%; object-fit: cover; }
+.settings-nav-face canvas { display: block; width: 20px; height: 20px; image-rendering: pixelated; }
 
 .settings-detail { flex: 1 1 auto; overflow-y: auto; padding: 28px 32px; }
 .settings-pane { display: flex; flex-direction: column; gap: 18px; max-width: 560px; }
@@ -194,15 +193,11 @@ function Settings({ state, client }: { state: SettingsState; client: Client<Sett
 	)
 }
 
-// The nav row for the agent wears the agent's own face and name — the sidebar stops
-// saying "Agent" and starts saying "Fern". It is also how you notice a soul edited on
-// another device: the row follows the volume.
-function AgentNavGlyph({ state, client }: { state: SettingsState; client: Client<SettingsApp> }) {
-	const worn = wornAvatar(state.soul, useAvatars(client, state.avatarRevision))
+// The sidebar uses the same live canvas as the character sheet.
+function AgentNavGlyph() {
 	return (
 		<span className="settings-nav-glyph settings-nav-face" aria-hidden>
-			{/* Empty until the first list lands: a face, or the space one will take. */}
-			{worn ? <img src={worn.preview} alt="" /> : null}
+			<GameboyAvatar />
 		</span>
 	)
 }
@@ -244,7 +239,7 @@ function Sidebar({ state, client }: { state: SettingsState; client: Client<Setti
 					data-active={category === 'agent' || undefined}
 					onClick={() => void client.selectCategory({ category: 'agent' })}
 				>
-					<AgentNavGlyph state={state} client={client} />
+					<AgentNavGlyph />
 					<span>{state.soul && !state.soul.seeded ? state.soul.name : 'Agent'}</span>
 				</button>
 				{CATEGORIES.map((c) => (

@@ -2,7 +2,6 @@ import { defineApp } from '@justfiles/app'
 import {
 	type AccountInfo,
 	type AgentSoul,
-	type AvatarInfo,
 	type CapabilityId,
 	type GeneratedSoul,
 	type ProviderInfo,
@@ -11,7 +10,7 @@ import {
 	type UserFacts,
 	type UserProfile
 } from '@justfiles/app/capabilities/settings'
-import { fileStem, imageDataUrl } from '@justfiles/app/image-type'
+import { imageDataUrl } from '@justfiles/app/image-type'
 import * as v from 'valibot'
 
 // Settings is a thin façade over the one `settings` capability — the host admin
@@ -19,7 +18,7 @@ import * as v from 'valibot'
 // `accounts.*` methods are the macOS "Internet Accounts" shape: connect a provider,
 // then toggle which capabilities it backs. ChatGPT is just an oauth provider that
 // backs `ai`; its model pick rides as that capability's per-account config. Its
-// `agent.*` methods are where the companion is named, faced and given a soul — the
+// `agent.*` methods are where the companion is named and given a soul — the
 // flow that used to be a fake window in frieren's shell chrome, and that the Mac app
 // never had at all.
 //
@@ -30,9 +29,6 @@ import * as v from 'valibot'
 // preference: this state is written to `/state/<appId>.json` and REPLICATES, so a fact
 // about one window at one moment becomes a fact on every device the moment it lands here.
 //
-// NOTHING BINARY LIVES HERE. Reducer state is JSON-encoded to `/state/<appId>.json`
-// and replicates; an avatar's bytes travel GUI↔host as a procedure's argument, and its
-// picture comes back as a data URL from `listAvatars` (see `putAvatarFile`).
 export type Category = 'agent' | 'account' | 'accounts' | 'appearance' | 'system'
 
 // ── the wallpaper ─────────────────────────────────────────────────────────────
@@ -110,33 +106,6 @@ export function isBound(soul: AgentSoul | null): boolean {
 	return soul !== null && !soul.seeded
 }
 
-// The default built-in, and the ONLY ref this app spells (a nature card names its own art
-// too, as `builtin/<id>`): every other ref here came from the host and is passed back
-// untouched. `builtin/` art lives in the app bundle, so wearing it costs no storage.
-export const DEFAULT_AVATAR = 'builtin/vanilla'
-
-// The avatar a soul is wearing, as the host described it. An absent ref means the default,
-// and so does a ref naming an avatar that is not here — a pack removed, or a soul synced from
-// a device that has one this one does not. Mirrors how the shell resolves it.
-export function wornAvatar(soul: AgentSoul | null, avatars: AvatarInfo[]): AvatarInfo | undefined {
-	const ref = soul?.avatar ?? DEFAULT_AVATAR
-	return avatars.find((a) => a.ref === ref) ?? avatars.find((a) => a.ref === DEFAULT_AVATAR)
-}
-
-// The states an avatar can be in, in the order the pane shows them: whatever the BUILT-IN
-// art covers. The vocabulary belongs to `@justfiles/agent/expression`, which this app cannot
-// import — and every built-in is required to cover every expression, so the platform's own
-// art is the list, and a new feeling appears here the moment the art does.
-export function avatarStates(avatars: AvatarInfo[]): string[] {
-	const states = new Set<string>()
-	for (const avatar of avatars) {
-		if (avatar.builtin) for (const file of avatar.files) states.add(fileStem(file))
-	}
-	return [...states].sort((a, b) =>
-		a === 'resting' ? -1 : b === 'resting' ? 1 : a.localeCompare(b)
-	)
-}
-
 // The one drift left now that a nature is chosen only at the summoning: a rename leaves
 // the old name in the prose ("You are Fern…"). Report the name the prose opens with, so
 // the pane can say so and offer one Rewrite — it never rewrites prose because a field
@@ -166,12 +135,6 @@ export type SettingsState = {
 	// the first read lands.
 	soul: AgentSoul | null
 	facts: UserFacts | null
-	// Bumped by every avatar write. The pictures are NOT state (see the header) and writing
-	// one moves nothing else — the soul is untouched when you replace a file in the avatar you
-	// already wear — so without this marker the state after a write is identical, the kernel
-	// emits no update, and a pane keeps showing the face it read before. It replicates, so an
-	// avatar installed on another device lands here the same way.
-	avatarRevision: number
 	// NO DRAFT LIVES HERE. A soul being written, the one waiting for a verdict, and whether
 	// this host can write one at all are facts about ONE WINDOW at ONE MOMENT — and this
 	// state replicates, so anything of that shape put here goes wrong twice over: it follows
@@ -193,7 +156,6 @@ export const initialState: SettingsState = {
 	usageError: null,
 	soul: null,
 	facts: null,
-	avatarRevision: 0,
 	loading: true,
 	error: null
 }
@@ -266,11 +228,6 @@ export const app = defineApp({
 		),
 		factsLoaded: t.fromResult('settings', 'agent.readProfile', (state, r) =>
 			r.ok ? { ...state, facts: r.value } : { ...state, error: r.error.message }
-		),
-		avatarChanged: t.on(
-			v.object({}),
-			(state) => ({ ...state, avatarRevision: state.avatarRevision + 1 }),
-			{ description: 'Note that an avatar on the volume changed, so readers re-read it.' }
 		),
 		selectCategory: t.on(
 			v.object({
@@ -353,9 +310,6 @@ export const app = defineApp({
 				})
 			}
 		}),
-		// `avatar` is the ref the agent wears — an ordinary patch field, passed by the summoning
-		// when it binds and by the picker in the character sheet. Every other save omits it and
-		// the host keeps what is on the file.
 		saveSoul: p.procedure({
 			description: "Write the agent's name, gender and soul to the volume.",
 			// A PATCH: only what is passed is written (the host merges). The sheet edits one
@@ -363,8 +317,7 @@ export const app = defineApp({
 			schema: v.object({
 				name: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 				gender: v.optional(genderSchema),
-				body: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
-				avatar: v.optional(v.string())
+				body: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1)))
 			}),
 			async run(input, app) {
 				await app.invoke('settings', 'agent.writeSoul', input)
@@ -387,31 +340,6 @@ export const app = defineApp({
 				await app.settled((await app.dispatch({ type: 'loadFacts', params: {} })).seq, {
 					timeout: 10_000
 				})
-			}
-		}),
-		// An avatar is a DIRECTORY, so the list is directories-with-a-preview and the write is
-		// one named file in one of them. The pictures never enter reducer state (it is JSON, and
-		// it replicates): they arrive as data URLs on a procedure's answer.
-		listAvatars: p.procedure({
-			description: 'List the avatars the agent could wear: the built-in art, then the volume.',
-			audience: 'gui',
-			schema: v.object({}),
-			run: (_input, app) => app.invoke('settings', 'agent.listAvatars', {}) as Promise<AvatarInfo[]>
-		}),
-		putAvatarFile: p.procedure({
-			description: 'Write one state of an avatar (null bytes deletes it).',
-			audience: 'gui',
-			schema: v.object({
-				avatar: v.string(),
-				name: v.string(),
-				bytes: v.nullable(v.instance(Uint8Array))
-			}),
-			async run(input, app) {
-				await app.invoke('settings', 'agent.putAvatarFile', input)
-				// The soul is untouched by this — reloading it would fold back the same value and
-				// change nothing — so the revision bump is what tells every reader (this pane, the
-				// sidebar row, another device) that the art is different now.
-				await app.dispatch({ type: 'avatarChanged', params: {} })
 			}
 		}),
 		// NOR IS THE BUILD, AND FOR A SHARPER REASON THAN THE WALLPAPER'S. A version is a
@@ -444,7 +372,7 @@ export const app = defineApp({
 				if (!bytes) return { color: null, image: null }
 				const color = wallpaperColor(bytes)
 				// A `data:` URL and not a `blob:` one: the app frame's CSP allows exactly that, and
-				// nobody has to own a revoke (same reason avatars travel this way).
+				// nobody has to own a revoke.
 				return { color, image: color ? null : imageDataUrl(bytes) }
 			}
 		}),
