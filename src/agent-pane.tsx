@@ -5,15 +5,14 @@ import { fileStem } from '@justfiles/app/image-type'
 import { type ChangeEvent, type DragEvent, useEffect, useRef, useState } from 'react'
 import {
 	avatarStates,
-	DEFAULT_AVATAR,
 	isBound,
 	nameInSoul,
 	type SettingsApp,
 	type SettingsState,
 	wornAvatar
 } from './app.ts'
-import { ARCHETYPES, archetypeOf } from './archetypes.ts'
-import { imageUrl, squareImage } from './squareImage.ts'
+import { ARCHETYPES } from './archetypes.ts'
+import { squareImage } from './squareImage.ts'
 
 // The Agent pane: who your companion is, and nothing else (your own name and birth date
 // live with your account — they are facts about you). Two states, one pane:
@@ -32,9 +31,8 @@ import { imageUrl, squareImage } from './squareImage.ts'
 // A NATURE IS A SEED, AND IT IS NOT KEPT. It is offered once, in the summoning, where it
 // shapes the first draft — and then it is over. Nothing records "this one is a teacher",
 // because after the draft exists the prose IS the character, and a word in the frontmatter
-// claiming otherwise can only disagree with the soul on screen. What the ritual leaves
-// behind is the avatar they wear, which is the part of the choice you can still see. The
-// route back is "Summon again", which replaces the soul.
+// claiming otherwise can only disagree with the soul on screen. The route back is "Summon
+// again", which replaces the soul.
 //
 // The one drift left is a RENAME: the prose opens "You are Fern…". The pane says so and
 // offers one Rewrite. It never rewrites prose because a field changed.
@@ -97,11 +95,6 @@ injectStyle(
 /* the summoning */
 .agent-altar { display: grid; place-items: center; padding: 20px 0 30px; }
 .agent-altar-inner { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 560px; text-align: center; }
-.agent-altar-portrait { position: relative; width: 132px; height: 132px; border-radius: 18px; }
-.agent-altar-portrait img { width: 100%; height: 100%; object-fit: cover; }
-.agent-altar-portrait[data-dim="true"] img { filter: grayscale(1); opacity: 0.4; }
-.agent-ring { position: absolute; inset: -10px; border: 2px dashed color-mix(in srgb, var(--focus) 70%, transparent); border-radius: 50%; animation: agent-spin 3.2s linear infinite; pointer-events: none; }
-@keyframes agent-spin { to { transform: rotate(360deg); } }
 .agent-step { font-size: 10px; font-weight: 650; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.45; }
 .agent-ask { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
 .agent-lede { margin: 0; max-width: 400px; font-size: 12px; line-height: 1.5; opacity: 0.55; }
@@ -111,7 +104,6 @@ injectStyle(
 .agent-natures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .agent-nature { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px 15px; text-align: center; border: 1px solid var(--rule); border-radius: 12px; background: var(--window-bg); color: inherit; }
 .agent-nature:hover { border-color: var(--focus); background: color-mix(in srgb, var(--focus) 6%, var(--window-bg)); }
-.agent-nature img { width: 72px; height: 72px; }
 .agent-nature b { font-size: 13.5px; }
 .agent-nature span { font-size: 11.5px; line-height: 1.35; opacity: 0.6; }
 .agent-dispo { display: grid; gap: 3px; width: 100%; margin-top: 2px; }
@@ -254,16 +246,12 @@ const RESTING = 'resting'
 // below is the slow path: wear a whole set, or author a face per feeling.
 function AvatarDrop({
 	face,
-	size = 'sheet',
-	dim,
 	busy,
 	onPick,
 	onError
 }: {
 	// Undefined until the first `listAvatars` lands — the frame is drawn, the picture arrives.
 	face?: string
-	size?: 'sheet' | 'altar'
-	dim?: boolean
 	busy?: boolean
 	// Just the bytes: the state a photo lands in is named for the state, not for the encoder
 	// this browser happened to have.
@@ -294,9 +282,8 @@ function AvatarDrop({
 		<>
 			<button
 				type="button"
-				className={size === 'altar' ? 'agent-drop agent-altar-portrait' : 'agent-drop'}
+				className="agent-drop"
 				data-over={over || undefined}
-				data-dim={dim || undefined}
 				disabled={busy}
 				title="Click, or drop an image here"
 				onClick={() => input.current?.click()}
@@ -484,8 +471,7 @@ export function AgentPane({
 	// write only happens at Bind — so there is no "unbind" method and no confirmation for a
 	// step that has not touched the volume.
 	const [resummon, setResummon] = useState(false)
-	// Read here and passed down, so the ritual and the sheet agree about what is available to
-	// wear — and a photo dropped in one is on screen in the other.
+	// The character sheet lists the avatar art the host can offer.
 	const avatars = useAvatars(client, state.avatarRevision)
 
 	// `soul` is null only before the first read lands.
@@ -495,7 +481,6 @@ export function AgentPane({
 			<Summoning
 				client={client}
 				drafting={drafting}
-				avatars={avatars}
 				// The soul being replaced — the ritual opens on their name and says whose soul
 				// this ends. Null while unbound: there is no one to replace yet.
 				from={isBound(state.soul) ? state.soul : null}
@@ -652,9 +637,11 @@ function CharacterSheet({
 						</span>
 					</div>
 					<span className="agent-hint">
-						{worn?.builtin
-							? `They wear the ${worn.label.toLowerCase()} art — a choice, not bytes. Drop a photo on it to use your own.`
-							: `Their face is ${worn?.label ?? 'yours'}, stored on your volume and synced to every device.`}
+						{!soul.avatar
+							? 'They use the default monitor avatar. Drop a photo here to use your own.'
+							: worn?.builtin
+								? `They wear the ${worn.label.toLowerCase()} art — a choice, not bytes. Drop a photo on it to use your own.`
+								: `Their face is ${worn?.label ?? 'yours'}, stored on your volume and synced to every device.`}
 					</span>
 				</div>
 			</section>
@@ -687,8 +674,11 @@ function CharacterSheet({
 					<States client={client} avatar={worn} states={avatarStates(avatars)} />
 				) : (
 					<span className="agent-hint">
-						Built-in art costs you no storage and updates with the app. Drop a photo on the portrait
-						to make an avatar of your own — then you can draw a face per feeling.
+						{worn
+							? 'Built-in art costs you no storage and updates with the app.'
+							: 'The monitor is the default. Choose image art above only if you want to replace it.'}{' '}
+						Drop a photo on the portrait to make an avatar of your own — then you can draw a face
+						per feeling.
 					</span>
 				)}
 			</section>
@@ -799,24 +789,19 @@ function CharacterSheet({
 
 // ── the summoning ─────────────────────────────────────────────────────────
 // One question at a time, in the same pane, in a real window: a name, then a nature, then
-// the soul drafted in front of you. Nothing is written until "Bind" — including the photo,
-// which is why the draft carries bytes.
+// the soul drafted in front of you. Nothing is written until "Bind".
 
 const STEPS = ['name', 'nature', 'review'] as const
 
 function Summoning({
 	client,
 	drafting,
-	avatars,
 	from,
 	onBound,
 	onCancel
 }: {
 	client: Client<SettingsApp>
 	drafting: Drafting
-	// Every avatar this host can offer — the nature cards wear the built-in art, so the
-	// pictures come from the host and this app ships none.
-	avatars: AvatarInfo[]
 	// The soul being replaced, when this is "summon again": the ritual starts from the name
 	// they already have rather than from nothing.
 	from: SettingsState['soul']
@@ -828,16 +813,10 @@ function Summoning({
 	const [name, setName] = useState(from?.name ?? '')
 	const [gender, setGender] = useState<Gender>(from?.gender ?? 'female')
 	const [archetype, setArchetype] = useState<string | null>(null)
-	const [photo, setPhoto] = useState<{ bytes: Uint8Array<ArrayBuffer>; url: string } | null>(null)
 	const [body, setBody] = useState('')
 	const [firstWords, setFirstWords] = useState<string | null>(null)
 	const [busy, setBusy] = useState(false)
-	const nature = archetypeOf(archetype)
 	const writing = drafting.writing
-	// The art a nature wears: `builtin/<id>` — the one ref this app spells besides the default,
-	// because a nature card names the picture it is offering.
-	const previewOf = (ref: string) => avatars.find((avatar) => avatar.ref === ref)?.preview
-	const chosen = archetype ? `builtin/${archetype}` : DEFAULT_AVATAR
 
 	// The draft lands in the ritual's own editor — showing it IS the review step. It is the
 	// same textarea whether the model wrote it or the user did, and it is held by this
@@ -868,18 +847,10 @@ function Summoning({
 	const bind = async () => {
 		setBusy(true)
 		try {
-			// THE PHOTO FIRST, then the soul. Two writes cannot be one transaction here, and the
-			// soul is the POINTER — so a failed upload leaves the agent exactly as they were, and
-			// a failed bind leaves a file under `mine/` that nobody is wearing and nobody sees.
-			// Nothing is deleted either way: the art they had is still theirs.
-			if (photo) await client.putAvatarFile({ avatar: MINE, name: RESTING, bytes: photo.bytes })
 			await client.saveSoul({
 				name: name.trim(),
 				gender,
-				body: body.trim(),
-				// The nature picked here is not recorded AS a nature — it is recorded as the avatar
-				// they wear, which is the only part of it that outlives the ritual.
-				avatar: photo ? MINE : chosen
+				body: body.trim()
 			})
 		} finally {
 			setBusy(false)
@@ -898,26 +869,10 @@ function Summoning({
 		</div>
 	)
 
-	const art = photo?.url ?? previewOf(chosen)
-
 	return (
 		<div className="settings-pane">
 			<div className="agent-altar">
 				<div className="agent-altar-inner">
-					{step === 'review' ? (
-						<AvatarDrop
-							face={art}
-							size="altar"
-							busy={busy}
-							onPick={(bytes) => setPhoto({ bytes, url: imageUrl(bytes) })}
-						/>
-					) : (
-						<span className="agent-drop agent-altar-portrait" data-dim="true">
-							{art ? <img src={art} alt="" /> : null}
-							{writing ? <span className="agent-ring" /> : null}
-						</span>
-					)}
-
 					{step === 'name' ? (
 						<>
 							<span className="agent-step">The summoning</span>
@@ -976,10 +931,6 @@ function Summoning({
 										disabled={writing}
 										onClick={() => pickNature(option.id)}
 									>
-										{/* The art a nature wears, once the host has said what it is. */}
-										{previewOf(`builtin/${option.id}`) ? (
-											<img src={previewOf(`builtin/${option.id}`)} alt="" />
-										) : null}
 										<b>{option.title}</b>
 										<span>{option.tagline}</span>
 										<Pips values={option.disposition} />
@@ -995,10 +946,8 @@ function Summoning({
 							<span className="agent-step">Before you bind</span>
 							<h1 className="agent-ask">This is {name.trim()}.</h1>
 							<p className="agent-lede">
-								Read it — change a word if you like, it is a file and not a contract.{' '}
-								{photo
-									? 'That photo becomes their face.'
-									: `They wear the ${nature?.title.toLowerCase() ?? 'default'} art; drop a photo on the portrait to use your own.`}
+								Read it — change a word if you like, it is a file and not a contract. Their monitor
+								avatar is already set.
 							</p>
 							<div className="agent-doc" style={{ width: '100%', textAlign: 'left' }}>
 								<div className="agent-doc-body">
@@ -1006,7 +955,7 @@ function Summoning({
 										{frontmatter({
 											name: name.trim(),
 											gender,
-											avatar: photo ? MINE : chosen
+											avatar: null
 										})}
 									</span>
 									<textarea

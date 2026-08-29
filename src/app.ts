@@ -110,16 +110,16 @@ export function isBound(soul: AgentSoul | null): boolean {
 	return soul !== null && !soul.seeded
 }
 
-// The default built-in, and the ONLY ref this app spells (a nature card names its own art
-// too, as `builtin/<id>`): every other ref here came from the host and is passed back
-// untouched. `builtin/` art lives in the app bundle, so wearing it costs no storage.
+// The default built-in, and the only ref this app spells. Every other ref comes from the
+// host and is passed back untouched. Built-in art costs no storage.
 export const DEFAULT_AVATAR = 'builtin/vanilla'
 
-// The avatar a soul is wearing, as the host described it. An absent ref means the default,
-// and so does a ref naming an avatar that is not here — a pack removed, or a soul synced from
-// a device that has one this one does not. Mirrors how the shell resolves it.
+// The image avatar a soul names, as the host described it. No ref means the host's default
+// renderer, which is not one of these image sets. An unknown explicit ref falls back to the
+// legacy image default, matching the shell.
 export function wornAvatar(soul: AgentSoul | null, avatars: AvatarInfo[]): AvatarInfo | undefined {
-	const ref = soul?.avatar ?? DEFAULT_AVATAR
+	const ref = soul?.avatar
+	if (!ref) return undefined
 	return avatars.find((a) => a.ref === ref) ?? avatars.find((a) => a.ref === DEFAULT_AVATAR)
 }
 
@@ -353,9 +353,8 @@ export const app = defineApp({
 				})
 			}
 		}),
-		// `avatar` is the ref the agent wears — an ordinary patch field, passed by the summoning
-		// when it binds and by the picker in the character sheet. Every other save omits it and
-		// the host keeps what is on the file.
+		// `avatar` is the ref the agent wears — an ordinary patch field passed by the picker in
+		// the character sheet. Every other save omits it and keeps the current avatar.
 		saveSoul: p.procedure({
 			description: "Write the agent's name, gender and soul to the volume.",
 			// A PATCH: only what is passed is written (the host merges). The sheet edits one

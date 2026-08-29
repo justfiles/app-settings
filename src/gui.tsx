@@ -201,8 +201,15 @@ function AgentNavGlyph({ state, client }: { state: SettingsState; client: Client
 	const worn = wornAvatar(state.soul, useAvatars(client, state.avatarRevision))
 	return (
 		<span className="settings-nav-glyph settings-nav-face" aria-hidden>
-			{/* Empty until the first list lands: a face, or the space one will take. */}
-			{worn ? <img src={worn.preview} alt="" /> : null}
+			{worn ? (
+				<img src={worn.preview} alt="" />
+			) : (
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+					<title>Monitor avatar</title>
+					<rect x="2" y="2" width="12" height="9" rx="2" />
+					<path d="M6 14h4M8 11v3" />
+				</svg>
+			)}
 		</span>
 	)
 }

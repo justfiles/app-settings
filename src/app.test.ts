@@ -144,14 +144,14 @@ const avatar = (over: Partial<AvatarInfo>): AvatarInfo => ({
 	...over
 })
 
-test('the worn avatar is the ref in the soul, and an unknown one is the default', () => {
+test('an explicit image avatar resolves, while no ref leaves the host default alone', () => {
 	const vanilla = avatar({})
 	const mine = avatar({ ref: 'mine', label: 'Mine', builtin: false, files: ['resting.png'] })
 	const list = [vanilla, mine]
 	expect(wornAvatar({ ...boundSoul, avatar: 'mine' }, list)).toBe(mine)
-	// No ref at all, and a ref naming a pack this device does not have: the default built-in
-	// either way — which is what the shell paints too.
-	expect(wornAvatar({ ...boundSoul, avatar: null }, list)).toBe(vanilla)
+	// No ref belongs to the host's default renderer, which is not an image in this list.
+	expect(wornAvatar({ ...boundSoul, avatar: null }, list)).toBeUndefined()
+	// An explicit image ref that is missing still falls back to the legacy built-in image.
 	expect(wornAvatar({ ...boundSoul, avatar: 'aurora' }, list)).toBe(vanilla)
 	// Before the first list lands there is nothing to wear yet.
 	expect(wornAvatar(boundSoul, [])).toBeUndefined()
