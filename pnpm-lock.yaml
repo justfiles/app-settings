@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@justfiles/app':
-        specifier: ^0.9.0
-        version: 0.9.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
+        specifier: ^0.11.0
+        version: 0.11.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
       '@justfiles/avatar':
         specifier: ^0.1.0
         version: 0.1.0(react@19.2.8)
@@ -270,8 +270,8 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@justfiles/app@0.9.0':
-    resolution: {integrity: sha512-K8lqWWfUKZDWlRziEk+6FOW+UbPnX4xQrrd9QvFWMBfJZEG4cDaWllZUXozs0x7SMF8THawPGp9L85UNQiZkww==}
+  '@justfiles/app@0.11.0':
+    resolution: {integrity: sha512-i0hxD35edqUDPdX+rcVRmOiho4ievQR0r7qSJZRVPEMCovC9CO0/XybGO7hZ4jXGTjp+Qw+FHXWkzXQfghJ5tA==}
     peerDependencies:
       esbuild: ^0.27.0
       typescript: ^5 || ^6
@@ -292,11 +292,11 @@ packages:
       react:
         optional: true
 
-  '@justfiles/design@0.1.1':
-    resolution: {integrity: sha512-+AyrCPePiJ7CgDU75hFl0ywOoeONv1Gr+gcUDPfKqmgbmS0TrjFc63LDW7zF0m6EBK2lyIY2AAN5oxl8p/rNjA==}
+  '@justfiles/design@0.3.0':
+    resolution: {integrity: sha512-alwOrOq9WQTUQnZ5vfSv6bYOvclB0jBUs/nFhMpxiuOB+TO76Wh0alij1utp3ZFViPQSSxlCMKnSlLMH+0tYhg==}
 
-  '@justfiles/fs@0.7.0':
-    resolution: {integrity: sha512-/qt/53HRLTMIf3me54OTeWX5Um+1RFgD79jHkV5d0VtYCdwegM2zDY9XmHq+XoCdKzCs/10/dN4cFPnKHKpTQw==}
+  '@justfiles/fs@0.7.1':
+    resolution: {integrity: sha512-xkkgwl9R/WheOgVSKYjYuyG7XTBWQv8bnc3tLcCO2kVvJQnSrDFCinpFEwAGIq/As8k6sca7JhVzrQz/Z7KvlA==}
     peerDependencies:
       typescript: ^5
 
@@ -901,10 +901,10 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@justfiles/app@0.9.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
+  '@justfiles/app@0.11.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
     dependencies:
-      '@justfiles/design': 0.1.1
-      '@justfiles/fs': 0.7.0(typescript@6.0.3)
+      '@justfiles/design': 0.3.0
+      '@justfiles/fs': 0.7.1(typescript@6.0.3)
       '@standard-schema/spec': 1.1.0
       capnweb: 0.8.0
       es-module-lexer: 2.3.2
@@ -919,9 +919,9 @@ snapshots:
     optionalDependencies:
       react: 19.2.8
 
-  '@justfiles/design@0.1.1': {}
+  '@justfiles/design@0.3.0': {}
 
-  '@justfiles/fs@0.7.0(typescript@6.0.3)':
+  '@justfiles/fs@0.7.1(typescript@6.0.3)':
     dependencies:
       idb: 8.0.3
       typescript: 6.0.3
