@@ -3,10 +3,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig(({ mode }) => ({
-	// ONE React per artifact. `gui.js` inlines the framework, and pnpm can resolve
-	// this app's React and a React-based dependency's to two different copies. Two
-	// Reacts in one bundle means the renderer sets the hook dispatcher on an instance
-	// the components never read, and the GUI dies on its first `useState`.
+	// Vite dev still uses installed packages. Keep its renderer and hooks on one React.
 	resolve: { dedupe: ['react', 'react-dom'] },
 	plugins: [
 		react(),
@@ -18,6 +15,11 @@ export default defineConfig(({ mode }) => ({
 						name: 'Settings',
 						description: 'Connect accounts and choose what they power',
 						icon: 'icon.svg',
+						imports: {
+							react: 'https://esm.sh/react@19.2.8',
+							'react/jsx-runtime': 'https://esm.sh/react@19.2.8/jsx-runtime',
+							'react-dom/client': 'https://esm.sh/react-dom@19.2.8/client?deps=react@19.2.8'
+						},
 						app: 'src/app.ts',
 						gui: 'src/gui.tsx'
 					})
