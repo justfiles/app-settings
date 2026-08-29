@@ -11,6 +11,9 @@ importers:
       '@justfiles/app':
         specifier: ^0.9.0
         version: 0.9.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
+      '@justfiles/avatar':
+        specifier: ^0.1.0
+        version: 0.1.0(react@19.2.8)
       valibot:
         specifier: ^1.4.2
         version: 1.4.2(typescript@6.0.3)
@@ -279,6 +282,14 @@ packages:
       typescript:
         optional: true
       vite:
+        optional: true
+
+  '@justfiles/avatar@0.1.0':
+    resolution: {integrity: sha512-Kjo0/ZdzZDFs9sPw+dBjzdFnz0Ur/7+LBdlrufdTg3jnH0txPjfAaLIHu6O6mBPcPBlKPEmmXOjMLz7oE2YcIw==}
+    peerDependencies:
+      react: ^19.0.0
+    peerDependenciesMeta:
+      react:
         optional: true
 
   '@justfiles/design@0.1.1':
@@ -903,6 +914,10 @@ snapshots:
       esbuild: 0.27.7
       typescript: 6.0.3
       vite: 8.2.2(@types/node@26.3.0)(esbuild@0.27.7)
+
+  '@justfiles/avatar@0.1.0(react@19.2.8)':
+    optionalDependencies:
+      react: 19.2.8
 
   '@justfiles/design@0.1.1': {}
 
