@@ -1,6 +1,6 @@
 # TEMPORARY. Delete these entries when the JustFiles packages are more than 24 hours old.
 minimumReleaseAgeExclude:
-  - '@justfiles/app@0.11.0'
+  - '@justfiles/app@0.12.0'
   - '@justfiles/avatar@0.1.0'
   - '@types/node@26.3.0'
   - '@justfiles/design@0.3.0'

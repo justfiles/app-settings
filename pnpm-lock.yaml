@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@justfiles/app':
-        specifier: ^0.11.0
-        version: 0.11.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
+        specifier: ^0.12.0
+        version: 0.12.0(esbuild@0.27.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
       '@justfiles/avatar':
         specifier: ^0.1.0
         version: 0.1.0(react@19.2.8)
@@ -270,14 +270,20 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@justfiles/app@0.11.0':
-    resolution: {integrity: sha512-i0hxD35edqUDPdX+rcVRmOiho4ievQR0r7qSJZRVPEMCovC9CO0/XybGO7hZ4jXGTjp+Qw+FHXWkzXQfghJ5tA==}
+  '@justfiles/app@0.12.0':
+    resolution: {integrity: sha512-VXFEVL3W3nf3WZahXkWjTG7dS50lBDj2OY5tvbeq70Dtau+IV79ra9OEMk4fmijlXzWXlxRlNAWWygL+8bQrzw==}
     peerDependencies:
       esbuild: ^0.27.0
+      react: ^19
+      react-dom: ^19
       typescript: ^5 || ^6
       vite: ^8
     peerDependenciesMeta:
       esbuild:
+        optional: true
+      react:
+        optional: true
+      react-dom:
         optional: true
       typescript:
         optional: true
@@ -901,7 +907,7 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@justfiles/app@0.11.0(esbuild@0.27.7)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
+  '@justfiles/app@0.12.0(esbuild@0.27.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
     dependencies:
       '@justfiles/design': 0.3.0
       '@justfiles/fs': 0.7.1(typescript@6.0.3)
@@ -912,6 +918,8 @@ snapshots:
       type-fest: 5.8.0
     optionalDependencies:
       esbuild: 0.27.7
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
       typescript: 6.0.3
       vite: 8.2.2(@types/node@26.3.0)(esbuild@0.27.7)
 
