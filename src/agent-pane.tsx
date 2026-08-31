@@ -117,6 +117,7 @@ function Gendered({ value, onPick }: { value: Gender; onPick: (next: Gender) => 
 				<button
 					key={option}
 					type="button"
+					className="agent-seg-button"
 					data-on={value === option}
 					onClick={() => onPick(option)}
 				>
@@ -310,7 +311,7 @@ function CharacterSheet({
 							You renamed them — the prose still says <b>{written}</b>.
 						</span>
 						<span className="agent-note-grow" />
-						<button type="button" className="settings-small-button" onClick={rewrite}>
+						<button type="button" data-size="sm" onClick={rewrite}>
 							Rewrite
 						</button>
 					</div>
@@ -325,7 +326,7 @@ function CharacterSheet({
 							// this, text in the editor could only be saved, never abandoned.
 							<button
 								type="button"
-								className="settings-small-button"
+								data-size="sm"
 								disabled={busy}
 								onClick={() => {
 									setEditing(false)
@@ -337,7 +338,7 @@ function CharacterSheet({
 						) : null}
 						<button
 							type="button"
-							className="settings-small-button"
+							data-size="sm"
 							disabled={busy || writing}
 							onClick={() => {
 								if (!editing) return setEditing(true)
@@ -349,7 +350,7 @@ function CharacterSheet({
 						</button>
 						<button
 							type="button"
-							className="settings-small-button"
+							data-size="sm"
 							disabled={busy || writing || editing}
 							onClick={rewrite}
 						>
@@ -383,7 +384,7 @@ function CharacterSheet({
 			</section>
 
 			<div className="agent-row">
-				<button type="button" className="settings-small-button" onClick={onResummon}>
+				<button type="button" data-size="sm" onClick={onResummon}>
 					Summon again…
 				</button>
 				<span className="settings-card-copy">
@@ -589,7 +590,7 @@ function Summoning({
 							<div className="agent-actions">
 								<button
 									type="button"
-									className="settings-small-button"
+									data-size="sm"
 									disabled={busy || writing}
 									onClick={() => draft(archetype ?? 'companion')}
 								>
@@ -597,7 +598,7 @@ function Summoning({
 								</button>
 								<button
 									type="button"
-									className="settings-small-button"
+									data-size="sm"
 									disabled={busy || writing}
 									onClick={() => {
 										// Cleared, not just stepped back: an archetype still set is what the

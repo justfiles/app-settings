@@ -284,17 +284,6 @@ button.settings-account[data-active="true"],
 	font: inherit;
 	cursor: default;
 }
-.settings button:disabled {
-	opacity: 0.5;
-}
-.settings-small-button {
-	font-size: 11px;
-	padding: 3px 10px;
-	border: 1px solid var(--rule);
-	border-radius: 6px;
-	background: var(--window-bg);
-	color: inherit;
-}
 
 .settings-meter-head {
 	display: flex;

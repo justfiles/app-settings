@@ -84,7 +84,7 @@ function Settings({ state, client }: { state: SettingsState; client: Client<Sett
 								void client.clearError({})
 								drafting.dismiss()
 							}}
-							className="settings-small-button"
+							data-size="sm"
 						>
 							Dismiss
 						</button>
@@ -271,11 +271,7 @@ function AccountPane({ state, client }: { state: SettingsState; client: Client<S
 				<section className="settings-card">
 					<p className="settings-muted">{state.usageError ? 'Couldn’t load usage.' : 'Loading…'}</p>
 					<div className="settings-card-actions">
-						<button
-							type="button"
-							className="settings-small-button"
-							onClick={() => void client.loadUsage({})}
-						>
+						<button type="button" data-size="sm" onClick={() => void client.loadUsage({})}>
 							Retry
 						</button>
 					</div>
@@ -314,11 +310,7 @@ function AccountPane({ state, client }: { state: SettingsState; client: Client<S
 						sub="Deduplicated content across your files and notes."
 					/>
 					<div className="settings-card-actions">
-						<button
-							type="button"
-							className="settings-small-button"
-							onClick={() => void client.loadUsage({})}
-						>
+						<button type="button" data-size="sm" onClick={() => void client.loadUsage({})}>
 							Refresh
 						</button>
 					</div>
@@ -397,6 +389,7 @@ function AboutYou({ state, client }: { state: SettingsState; client: Client<Sett
 						<button
 							key={option}
 							type="button"
+							className="agent-seg-button"
 							data-on={facts?.gender === option}
 							onClick={() => void save({ gender: option })}
 						>
@@ -527,12 +520,7 @@ function ConnectedAccount({
 					{originLabel(account)}
 				</span>
 				{provider?.builtin ? null : (
-					<button
-						type="button"
-						className="settings-small-button"
-						disabled={busy}
-						onClick={disconnect}
-					>
+					<button type="button" data-danger data-size="sm" disabled={busy} onClick={disconnect}>
 						Disconnect
 					</button>
 				)}
