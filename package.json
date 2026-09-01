@@ -1,6 +1,6 @@
 {
 	"name": "app-settings",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"private": true,
 	"packageManager": "pnpm@11.24.0",
 	"description": "Manage accounts, appearance, and your companion in JustFiles.",
