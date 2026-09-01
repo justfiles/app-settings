@@ -3,6 +3,8 @@ import {
 	type AccountInfo,
 	type AgentSoul,
 	type CapabilityId,
+	DOCK_MATERIAL_NAMES,
+	type DockMaterial,
 	type GeneratedSoul,
 	type ProviderInfo,
 	settings,
@@ -55,6 +57,33 @@ export const WALLPAPER_COLORS: { name: string; hex: string }[] = [
 	{ name: 'Plum', hex: '#413a47' },
 	{ name: 'Fog', hex: '#a8aeb0' },
 	{ name: 'Paper', hex: '#e7e2d9' }
+]
+
+export const DOCK_MATERIALS: readonly {
+	name: DockMaterial
+	label: string
+	caption: string
+}[] = [
+	{
+		name: 'clear',
+		label: 'Clear',
+		caption: 'The wallpaper keeps its shapes. Least forgiving of a busy one.'
+	},
+	{
+		name: 'frosted',
+		label: 'Frosted',
+		caption: 'Milky and soft. Colour survives, detail does not.'
+	},
+	{
+		name: 'smoked',
+		label: 'Smoked',
+		caption: 'Darkened glass. The most contrast for labels — the default.'
+	},
+	{
+		name: 'solid',
+		label: 'Solid',
+		caption: 'No transparency at all. Also what your system’s reduced-transparency setting forces.'
+	}
 ]
 
 // `#rrggbb`, lower-cased — the one spelling written to the file, so reading a colour back
@@ -392,6 +421,25 @@ export const app = defineApp({
 			description: "Remove the wallpaper, putting the desktop back on the shell's own default.",
 			schema: v.object({}),
 			run: (_input, app) => app.invoke('settings', 'appearance.writeWallpaper', { bytes: null })
+		}),
+		readDockMaterial: p.procedure({
+			description: 'Read the desktop dock material.',
+			audience: 'gui',
+			schema: v.object({}),
+			async run(_input, app) {
+				const material = (await app.invoke(
+					'settings',
+					'appearance.readDockMaterial',
+					{}
+				)) as DockMaterial | null
+				return material ?? 'smoked'
+			}
+		}),
+		setDockMaterial: p.procedure({
+			description: 'Set the desktop dock material.',
+			schema: v.object({ material: v.picklist(DOCK_MATERIAL_NAMES) }),
+			run: ({ material }, app) =>
+				app.invoke('settings', 'appearance.writeDockMaterial', { material })
 		})
 	})
 })

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@justfiles/app':
-        specifier: ^0.12.0
-        version: 0.12.0(esbuild@0.27.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
+        specifier: ^0.13.0
+        version: 0.13.0(esbuild@0.27.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))
       '@justfiles/avatar':
         specifier: ^0.1.0
         version: 0.1.0(react@19.2.8)
@@ -270,8 +270,8 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@justfiles/app@0.12.0':
-    resolution: {integrity: sha512-VXFEVL3W3nf3WZahXkWjTG7dS50lBDj2OY5tvbeq70Dtau+IV79ra9OEMk4fmijlXzWXlxRlNAWWygL+8bQrzw==}
+  '@justfiles/app@0.13.0':
+    resolution: {integrity: sha512-OMCjDVlN2gHX3bk2NAJbnLO284vx1u5UThz1XNRdj+bWVaDg3VMZ0XDmH44T3KfI/9ZBcwpzOJakcTESb2+SFA==}
     peerDependencies:
       esbuild: ^0.27.0
       react: ^19
@@ -298,8 +298,8 @@ packages:
       react:
         optional: true
 
-  '@justfiles/design@0.3.0':
-    resolution: {integrity: sha512-alwOrOq9WQTUQnZ5vfSv6bYOvclB0jBUs/nFhMpxiuOB+TO76Wh0alij1utp3ZFViPQSSxlCMKnSlLMH+0tYhg==}
+  '@justfiles/design@0.4.0':
+    resolution: {integrity: sha512-XJwy8smp/I76SO9i5MZP+o1NTK6bzt6Gdi4gD8Qzbr8CJ9QmSQo/8duETGGsUvZexqhAy8dErlDBx7i1+hA3uA==}
 
   '@justfiles/fs@0.7.1':
     resolution: {integrity: sha512-xkkgwl9R/WheOgVSKYjYuyG7XTBWQv8bnc3tLcCO2kVvJQnSrDFCinpFEwAGIq/As8k6sca7JhVzrQz/Z7KvlA==}
@@ -907,9 +907,9 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@justfiles/app@0.12.0(esbuild@0.27.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
+  '@justfiles/app@0.13.0(esbuild@0.27.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.27.7))':
     dependencies:
-      '@justfiles/design': 0.3.0
+      '@justfiles/design': 0.4.0
       '@justfiles/fs': 0.7.1(typescript@6.0.3)
       '@standard-schema/spec': 1.1.0
       capnweb: 0.8.0
@@ -927,7 +927,7 @@ snapshots:
     optionalDependencies:
       react: 19.2.8
 
-  '@justfiles/design@0.3.0': {}
+  '@justfiles/design@0.4.0': {}
 
   '@justfiles/fs@0.7.1(typescript@6.0.3)':
     dependencies:

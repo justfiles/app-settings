@@ -2,6 +2,7 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	gap: 12px;
 }
 
 /* The simulation. Everything inside scales off the container's width, so the same
@@ -15,6 +16,7 @@
 	border-radius: 10px;
 	border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
 	user-select: none;
+	--dock-scale: 0.3;
 }
 /* The type scale is on the CHILDREN, not on the container: a container query unit used ON
    the container it would query resolves against the viewport instead (the spec breaks that
@@ -63,6 +65,18 @@
 	height: 1.3em;
 	border-radius: 999px;
 	background: color-mix(in srgb, var(--text) 25%, transparent);
+}
+.wp-windows {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	transition:
+		transform 250ms ease,
+		filter 250ms ease;
+}
+.wp-mini[data-open="true"] .wp-windows {
+	transform: scale(0.985);
+	filter: brightness(0.65) saturate(0.85);
 }
 .wp-win {
 	position: absolute;
@@ -118,39 +132,119 @@
 .wp-win-body b:nth-child(4) {
 	width: 45%;
 }
-.wp-omni {
+.wp-dock {
 	position: absolute;
 	left: 50%;
-	bottom: 3.5cqw;
+	bottom: 3.4cqw;
+	z-index: 2;
+	display: flex;
+	width: 72%;
+	flex-direction: column;
+	gap: 0.5em;
+	padding: 0;
 	transform: translateX(-50%);
+	border: 0;
+	appearance: none;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: default;
+}
+.wp-dock-bar {
 	display: flex;
 	align-items: center;
-	gap: 0.6em;
-	width: 66%;
-	height: 7.5cqw;
-	padding: 0 0.8em;
-	border-radius: 1em;
-	border: 1px solid var(--rule);
-	color: var(--text);
-	background: color-mix(in srgb, var(--surface) 88%, transparent);
-	backdrop-filter: blur(12px) saturate(180%);
-	box-shadow: 0 0.4em 1.2em rgba(0, 0, 0, 0.3);
+	gap: 0.5em;
+	padding: 0.5em;
+	border-radius: 0.85em;
 }
-.wp-omni-face {
+.wp-dock-field {
+	display: flex;
+	width: 42%;
+	height: 2.1em;
 	flex: none;
-	width: 1.5em;
-	height: 1.5em;
-	border-radius: 999px;
-	border: 1px solid rgba(255, 255, 255, 0.6);
-	background: linear-gradient(145deg, #c4b5fd, #7c9ec9);
+	align-items: center;
+	padding: 0 0.6em;
+	overflow: hidden;
+	border: 1px solid rgb(0 0 0 / 0.3);
+	border-bottom-color: rgb(255 255 255 / 0.12);
+	border-radius: 0.55em;
+	background: rgb(0 0 0 / 0.26);
+	box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.34);
+	color: rgb(242 245 249 / 0.62);
+	white-space: nowrap;
+	transition: width 300ms cubic-bezier(0.32, 0.72, 0, 1);
 }
-.wp-omni-ph {
+.wp-dock[data-open="true"] .wp-dock-field {
+	width: 100%;
 	flex: 1;
-	opacity: 0.45;
 }
-.wp-omni-key {
-	opacity: 0.35;
-	font-family: var(--font-mono);
+.wp-dock-apps {
+	display: flex;
+	align-items: center;
+	gap: 0.4em;
+}
+.wp-dock[data-open="true"] .wp-dock-apps {
+	display: none;
+}
+.wp-dock-key {
+	display: grid;
+	width: 2.6em;
+	height: 2.6em;
+	place-items: center;
+	border-radius: 0.65em;
+	background: var(--key);
+	box-shadow:
+		inset 0 0 0 1px rgb(0 0 0 / 0.12),
+		0 2px 5px rgb(0 0 0 / 0.38);
+	color: #fff;
+	font-size: 0.85em;
+	font-weight: 650;
+}
+.wp-dock-face {
+	width: 2.6em;
+	height: 2.6em;
+	border: 1px solid rgb(0 0 0 / 0.3);
+	border-radius: 50%;
+	background: #f0e2d0;
+	box-shadow: 0 2px 5px rgb(0 0 0 / 0.38);
+}
+.wp-dock-sheet {
+	overflow: hidden;
+	border-radius: 0.85em;
+}
+.wp-dock[data-open="false"] .wp-dock-sheet {
+	display: none;
+}
+.wp-dock-sheet-label {
+	padding: 0.6em 0.9em 0.45em;
+	border-bottom: 1px solid rgb(255 255 255 / 0.12);
+	color: rgb(242 245 249 / 0.62);
+	font-size: 0.72em;
+	font-weight: 650;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+.wp-dock-grid {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 0.7em;
+	padding: 0.8em 0.9em;
+}
+.wp-dock-grid span {
+	display: block;
+	aspect-ratio: 1;
+	border-radius: 0.6em;
+	background: var(--key);
+	box-shadow:
+		inset 0 0 0 1px rgb(0 0 0 / 0.12),
+		0 2px 5px rgb(0 0 0 / 0.38);
+}
+.wp-hint {
+	margin: -5px 0 0;
+	font-size: 11px;
+	text-align: center;
+	opacity: 0.45;
 }
 
 /* The tray: one frosted row, off the wallpaper. Dark in both themes on purpose — it
@@ -159,7 +253,6 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	margin-top: 14px;
 	padding: 8px 10px;
 	border-radius: 14px;
 	color: #fff;
@@ -182,10 +275,6 @@
 	border: 1px solid rgba(255, 255, 255, 0.32);
 	background-size: cover;
 	background-position: center;
-	transition: transform 100ms ease;
-}
-.wp-tile:hover {
-	transform: translateY(-1px);
 }
 .wp-tile[aria-pressed="true"],
 .wp-pick[data-on="true"] {
@@ -275,4 +364,93 @@
 	gap: 12px;
 	width: 100%;
 	margin-top: 10px;
+}
+.mat-row {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
+}
+.mat-tile {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 5px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: center;
+}
+.mat-sample {
+	position: relative;
+	height: 88px;
+	overflow: hidden;
+	border: 1px solid rgb(0 0 0 / 0.2);
+	border-radius: 8px;
+	background: var(--desktop-bg);
+	background-position: center;
+	background-size: cover;
+}
+.mat-bar {
+	position: absolute;
+	right: 8px;
+	bottom: 12px;
+	left: 8px;
+	display: flex;
+	height: 62px;
+	align-items: center;
+	gap: 8px;
+	padding: 9px;
+	border-radius: 14px;
+}
+.mat-field {
+	height: 34px;
+	flex: 1;
+	border: 1px solid rgb(0 0 0 / 0.3);
+	border-bottom-color: rgb(255 255 255 / 0.12);
+	border-radius: 9px;
+	background: rgb(0 0 0 / 0.26);
+	box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.34);
+}
+.mat-key {
+	display: grid;
+	width: 40px;
+	height: 40px;
+	flex: none;
+	place-items: center;
+	border-radius: 11px;
+	background: #e0a13c;
+	box-shadow:
+		inset 0 0 0 1px rgb(0 0 0 / 0.12),
+		0 2px 5px rgb(0 0 0 / 0.38);
+	color: #fff;
+	font-weight: 650;
+}
+.mat-label {
+	overflow: hidden;
+	font-size: 11px;
+	opacity: 0.55;
+	text-overflow: ellipsis;
+}
+.mat-tile[aria-pressed="true"] .mat-sample,
+.mat-tile:focus-visible .mat-sample {
+	outline: 2px solid var(--focus);
+	outline-offset: 2px;
+}
+.mat-tile[aria-pressed="true"] .mat-label {
+	font-weight: 600;
+	opacity: 1;
+}
+.mat-caption {
+	min-height: 2.4em;
+	margin: 0;
+	font-size: 11.5px;
+	opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+	.wp-windows,
+	.wp-dock-field {
+		transition-duration: 0s;
+	}
 }
