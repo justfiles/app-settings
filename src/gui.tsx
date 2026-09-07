@@ -49,7 +49,8 @@ const CATEGORIES: { id: Category; label: string; glyph: string }[] = [
 const CAP_LABEL: Record<CapabilityId, string> = {
 	email: 'Email',
 	calendar: 'Calendar',
-	ai: 'AI'
+	ai: 'AI text',
+	image: 'Images'
 }
 
 function Settings({ state, client }: { state: SettingsState; client: Client<SettingsApp> }) {
@@ -532,13 +533,17 @@ function ConnectedAccount({
 					// runs whenever no other AI account is selected. It can be taken over (check another
 					// provider's AI) but not switched off, so while it IS the active AI its toggle is
 					// uncheckable rather than a click the host would silently undo.
-					const floor = cap === 'ai' && on && provider?.builtin === true
+					const floor = (cap === 'ai' || cap === 'image') && on && provider?.builtin === true
 					return (
 						<label
 							key={cap}
 							className="settings-cap-toggle"
 							title={
-								floor ? 'Always available — enable another provider’s AI to take over' : undefined
+								floor
+									? cap === 'image'
+										? 'Images use the built-in provider independently of AI text'
+										: 'Always available — enable another provider’s AI text to take over'
+									: undefined
 							}
 						>
 							<input

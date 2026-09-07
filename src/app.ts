@@ -189,7 +189,7 @@ export const initialState: SettingsState = {
 	error: null
 }
 
-const capabilitySchema = v.picklist(['email', 'calendar', 'ai'] satisfies CapabilityId[])
+const capabilitySchema = v.picklist(['email', 'calendar', 'ai', 'image'] satisfies CapabilityId[])
 const genderSchema = v.picklist(['female', 'male'])
 
 export const app = defineApp({
