@@ -449,11 +449,12 @@ function Meter({
 // The badge text + tooltip Settings renders per lane (#296). `originKind` already
 // degrades an absent `origin` (an older host) to 'cloud'.
 function originLabel(account: AccountInfo): string {
-	return originKind(account) === 'device' ? 'This device' : 'Synced'
+	return originKind(account) === 'device' ? 'This device' : 'Cloud'
 }
 
 function originHint(account: AccountInfo): string {
-	if (originKind(account) !== 'device') return 'Synced across your devices'
+	if (originKind(account) !== 'device')
+		return 'Stored in your cloud account and available on your devices'
 	const label = account.origin?.kind === 'device' ? account.origin.label : undefined
 	return label ? `Connected on ${label} only` : 'Connected on this device only'
 }
@@ -577,6 +578,12 @@ function ConnectedAccount({
 			{aiConfig ? (
 				<label className="settings-field" htmlFor={`model-${account.accountId}`}>
 					<span className="settings-field-title">Model</span>
+					{account.providerId === 'chatgpt' ? (
+						<span>
+							Codex models; availability depends on your plan. This list differs from the ChatGPT
+							app.
+						</span>
+					) : null}
 					<select
 						id={`model-${account.accountId}`}
 						className="settings-select"
@@ -684,7 +691,11 @@ function ProviderConnectForm({
 				<div className="settings-provider-text">
 					<h2 className="settings-card-title">{provider.name}</h2>
 					<p className="settings-card-copy">
-						Backs {provider.capabilities.map((c) => CAP_LABEL[c]).join(' · ')}.
+						{provider.id === 'chatgpt' ? (
+							'Sign in once for web and Mac. AI text uses your Codex allowance; images use Just Computer.'
+						) : (
+							<>Backs {provider.capabilities.map((c) => CAP_LABEL[c]).join(' · ')}.</>
+						)}
 					</p>
 				</div>
 			</div>
