@@ -3,6 +3,7 @@ import {
 	type AccountInfo,
 	type AgentSoul,
 	type CapabilityId,
+	type ConnectState,
 	DOCK_MATERIAL_NAMES,
 	type DockMaterial,
 	type GeneratedSoul,
@@ -189,6 +190,8 @@ export const initialState: SettingsState = {
 	error: null
 }
 
+const connectRefSchema = v.object({ providerId: v.string(), operationId: v.string() })
+
 const capabilitySchema = v.picklist(['email', 'calendar', 'ai', 'image'] satisfies CapabilityId[])
 const genderSchema = v.picklist(['female', 'male'])
 
@@ -298,6 +301,32 @@ export const app = defineApp({
 			}),
 			run: (input, app) =>
 				app.invoke('settings', 'agent.generateSoul', input) as Promise<GeneratedSoul>
+		}),
+		beginAccountConnection: p.procedure({
+			description: 'Start interactive account sign-in.',
+			audience: 'gui',
+			schema: connectRefSchema,
+			run: (input, app) =>
+				app.invoke('settings', 'accounts.beginConnect', input) as Promise<ConnectState>
+		}),
+		readAccountConnection: p.procedure({
+			description: 'Read sign-in progress.',
+			audience: 'gui',
+			schema: connectRefSchema,
+			run: (input, app) =>
+				app.invoke('settings', 'accounts.readConnect', input) as Promise<ConnectState>
+		}),
+		cancelAccountConnection: p.procedure({
+			description: 'Cancel pending sign-in.',
+			audience: 'gui',
+			schema: connectRefSchema,
+			run: (input, app) => app.invoke('settings', 'accounts.cancelConnect', input)
+		}),
+		openAccountConnection: p.procedure({
+			description: 'Open the provider sign-in page.',
+			audience: 'gui',
+			schema: connectRefSchema,
+			run: (input, app) => app.invoke('settings', 'accounts.openConnect', input)
 		}),
 		connectAccount: p.procedure({
 			description: 'Connect a provider account (form providers pass credentials).',
