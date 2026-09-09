@@ -1,3 +1,9 @@
+> Historical proposal. Credential replication and the Mac ChatGPT loopback flow
+> described below are superseded by the
+> `platform/frieren/CHATGPT-ACCOUNT-DESIGN.md` in the host repository.
+> Current Settings uses shared interactive sign-in, separate AI text and image
+> capabilities, and credential-free account projections.
+
 _packages/app-settings · design_
 
 # Settings — one connection store, two hosts

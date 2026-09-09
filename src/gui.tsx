@@ -2,6 +2,8 @@ import type { Client } from '@justfiles/app'
 import type {
 	AccountInfo,
 	CapabilityId,
+	ConnectRef,
+	ConnectState,
 	ProviderInfo,
 	UsageResource
 } from '@justfiles/app/capabilities/settings'
@@ -49,7 +51,8 @@ const CATEGORIES: { id: Category; label: string; glyph: string }[] = [
 const CAP_LABEL: Record<CapabilityId, string> = {
 	email: 'Email',
 	calendar: 'Calendar',
-	ai: 'AI'
+	ai: 'AI text',
+	image: 'Images'
 }
 
 function Settings({ state, client }: { state: SettingsState; client: Client<SettingsApp> }) {
@@ -446,11 +449,12 @@ function Meter({
 // The badge text + tooltip Settings renders per lane (#296). `originKind` already
 // degrades an absent `origin` (an older host) to 'cloud'.
 function originLabel(account: AccountInfo): string {
-	return originKind(account) === 'device' ? 'This device' : 'Synced'
+	return originKind(account) === 'device' ? 'This device' : 'Cloud'
 }
 
 function originHint(account: AccountInfo): string {
-	if (originKind(account) !== 'device') return 'Synced across your devices'
+	if (originKind(account) !== 'device')
+		return 'Stored in your cloud account and available on your devices'
 	const label = account.origin?.kind === 'device' ? account.origin.label : undefined
 	return label ? `Connected on ${label} only` : 'Connected on this device only'
 }
@@ -465,6 +469,7 @@ function ConnectedAccount({
 	client: Client<SettingsApp>
 }) {
 	const [busy, setBusy] = useState(false)
+	const [reconnect, setReconnect] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const caps = provider?.capabilities ?? account.enabled
 	// `ai` may carry a model picker as its per-account config (host `describe`) — or
@@ -525,6 +530,12 @@ function ConnectedAccount({
 					</button>
 				)}
 			</div>
+			{provider?.authKind === 'interactive' ? (
+				<button type="button" data-size="sm" onClick={() => setReconnect(!reconnect)}>
+					{reconnect ? 'Close sign-in' : 'Reconnect'}
+				</button>
+			) : null}
+			{reconnect && provider ? <ProviderConnectForm provider={provider} client={client} /> : null}
 			<div className="settings-caps">
 				{caps.map((cap) => {
 					const on = account.enabled.includes(cap)
@@ -532,13 +543,17 @@ function ConnectedAccount({
 					// runs whenever no other AI account is selected. It can be taken over (check another
 					// provider's AI) but not switched off, so while it IS the active AI its toggle is
 					// uncheckable rather than a click the host would silently undo.
-					const floor = cap === 'ai' && on && provider?.builtin === true
+					const floor = (cap === 'ai' || cap === 'image') && on && provider?.builtin === true
 					return (
 						<label
 							key={cap}
 							className="settings-cap-toggle"
 							title={
-								floor ? 'Always available — enable another provider’s AI to take over' : undefined
+								floor
+									? cap === 'image'
+										? 'Images use the built-in provider independently of AI text'
+										: 'Always available — enable another provider’s AI text to take over'
+									: undefined
 							}
 						>
 							<input
@@ -563,6 +578,12 @@ function ConnectedAccount({
 			{aiConfig ? (
 				<label className="settings-field" htmlFor={`model-${account.accountId}`}>
 					<span className="settings-field-title">Model</span>
+					{account.providerId === 'chatgpt' ? (
+						<span>
+							Codex models; availability depends on your plan. This list differs from the ChatGPT
+							app.
+						</span>
+					) : null}
 					<select
 						id={`model-${account.accountId}`}
 						className="settings-select"
@@ -606,11 +627,49 @@ function ProviderConnectForm({
 	const [values, setValues] = useState<Record<string, string>>({})
 	const [busy, setBusy] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [attempt, setAttempt] = useState<ConnectState | null>(null)
+	const pending = useRef<ConnectRef | null>(null)
+	useEffect(
+		() => () => {
+			if (pending.current) void client.cancelAccountConnection(pending.current).catch(() => {})
+		},
+		[client]
+	)
+	useEffect(() => {
+		if (attempt?.status !== 'pending') return
+		const timer = setTimeout(
+			async () => {
+				try {
+					const next = await client.readAccountConnection(attempt)
+					if (pending.current?.operationId !== attempt.operationId) return
+					setAttempt(next)
+					if (next.status !== 'pending') {
+						pending.current = null
+						setBusy(false)
+						if (next.status === 'connected') await client.loadAccounts({})
+						if (next.status === 'failed') setError(next.message)
+						if (next.status === 'expired') setError('Sign-in expired. Please try again.')
+					}
+				} catch (err) {
+					setError(err instanceof Error ? err.message : String(err))
+					setAttempt({ ...attempt })
+				}
+			},
+			Math.max(1000, attempt.prompt?.intervalMs ?? 1000)
+		)
+		return () => clearTimeout(timer)
+	}, [attempt, client])
 
 	const connect = async () => {
 		setBusy(true)
 		setError(null)
 		try {
+			if (provider.authKind === 'interactive') {
+				const ref = { providerId: provider.id, operationId: crypto.randomUUID() }
+				pending.current = ref
+				setAttempt(await client.beginAccountConnection(ref))
+				return
+			}
 			await client.connectAccount(
 				provider.authKind === 'form'
 					? { providerId: provider.id, credentials: values }
@@ -618,9 +677,10 @@ function ProviderConnectForm({
 			)
 			setValues({})
 		} catch (err) {
+			pending.current = null
 			setError(err instanceof Error ? err.message : String(err))
 		} finally {
-			setBusy(false)
+			if (!pending.current) setBusy(false)
 		}
 	}
 
@@ -631,7 +691,11 @@ function ProviderConnectForm({
 				<div className="settings-provider-text">
 					<h2 className="settings-card-title">{provider.name}</h2>
 					<p className="settings-card-copy">
-						Backs {provider.capabilities.map((c) => CAP_LABEL[c]).join(' · ')}.
+						{provider.id === 'chatgpt' ? (
+							'Sign in once for web and Mac. AI text uses your Codex allowance; images use Just Computer.'
+						) : (
+							<>Backs {provider.capabilities.map((c) => CAP_LABEL[c]).join(' · ')}.</>
+						)}
 					</p>
 				</div>
 			</div>
@@ -652,10 +716,72 @@ function ProviderConnectForm({
 					/>
 				</label>
 			))}
+			{attempt?.status === 'pending' ? (
+				<div className="settings-field" aria-live="polite">
+					<p>Complete sign-in in your browser, then return here.</p>
+					{attempt.prompt?.userCode ? (
+						<label>
+							Sign-in code
+							<input
+								className="settings-select"
+								readOnly
+								value={attempt.prompt.userCode}
+								onFocus={(e) => e.currentTarget.select()}
+							/>
+						</label>
+					) : null}
+					{attempt.prompt ? (
+						<>
+							<button
+								type="button"
+								onClick={() =>
+									void client
+										.openAccountConnection(attempt)
+										.catch(() =>
+											setError('Could not open your browser. Copy the sign-in address below.')
+										)
+								}
+							>
+								Open sign-in page
+							</button>
+							<label>
+								Sign-in address
+								<input
+									className="settings-select"
+									readOnly
+									value={attempt.prompt.verificationUrl}
+									onFocus={(e) => e.currentTarget.select()}
+								/>
+							</label>
+						</>
+					) : (
+						<p>Waiting for the sign-in page…</p>
+					)}
+					<button
+						type="button"
+						onClick={() => {
+							void client
+								.cancelAccountConnection(attempt)
+								.then(() => {
+									pending.current = null
+									setAttempt(null)
+									setBusy(false)
+								})
+								.catch((err) => setError(String(err)))
+						}}
+					>
+						Cancel sign-in
+					</button>
+				</div>
+			) : null}
 			{error ? <p className="settings-card-error">{error}</p> : null}
 			<div className="settings-card-actions">
 				<button type="button" data-primary disabled={busy} onClick={() => void connect()}>
-					{busy ? 'Connecting…' : `Connect ${provider.name}`}
+					{busy
+						? 'Connecting…'
+						: provider.id === 'chatgpt'
+							? 'Use your ChatGPT subscription'
+							: `Connect ${provider.name}`}
 				</button>
 			</div>
 		</section>
